@@ -63,11 +63,20 @@ class TodoList:
         idx -= 1
         self.done_list.pop(idx)
     
+    def delete_all_completed_items(self):
+        self.done_list.clear()
+    
     def delete_todo_item(self, idx: int):
         if not (0 < idx < len(self.todo_list) + 1):
             raise IndexError("Index out of range")
         idx -= 1
         self.todo_list.pop(idx)
+    
+    def set_demo_link(self, link: str):
+        self.demo_link = link
+    
+    def set_lyrics_link(self, link: str):
+        self.chords_lyrics_link = link
 
 
     def __str__(self):
