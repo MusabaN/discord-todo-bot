@@ -47,7 +47,7 @@ async def get_todo_list(interaction: discord.Interaction) -> tuple[TodoList, dis
     return todo_list, todo_list_message
 
 async def find_todo_list_message(channel):
-    async for message in channel.history(limit=4):
+    async for message in channel.history(limit=4, oldest_first=True):
         if message.author == client.user and "**Todo liste:**" in message.content:
             return message
     return None
