@@ -28,6 +28,11 @@ async def on_ready():
 
 @client.event
 async def on_thread_create(thread):
+    # tag all members of the channel in the first message
+    members = thread.parent.members
+    mentions = ' '.join([member.mention for member in members])
+    await thread.send(f"New thread created! {mentions}")
+
     if thread.parent.name.lower() == 'demos':
         todo_list = TodoList()
         client.todo_lists[thread.id] = todo_list
