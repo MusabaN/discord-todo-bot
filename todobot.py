@@ -8,6 +8,7 @@ class TodoBot(discord.Client):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
+        intents.members = True
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
         self.todo_lists = {}  # Dictionary to store TodoList objects for each thread
@@ -29,10 +30,9 @@ async def on_ready():
 @client.event
 async def on_thread_create(thread):
     # Tag all members of the server in the first message
-    guild = thread.guild
-    members = guild.members
-    mentions = ' '.join([member.mention for member in members if not member.bot])
-    await thread.send(f"{mentions}")
+    members = thread.guild.members
+    members_str = " ".join([member.mention for member in members if not member.bot])
+    await thread.send(f"Yo {members_str}")
 
     if thread.parent.name.lower() == 'demos':
         todo_list = TodoList()
