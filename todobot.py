@@ -2,6 +2,8 @@ import discord
 from discord import app_commands
 from todo_list import TodoList
 from dotenv import load_dotenv
+from image_to_event_url import create_event_url
+import requests
 import os
 
 class TodoBot(discord.Client):
@@ -26,6 +28,39 @@ async def on_ready():
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
+
+@client.event
+async def on_message(message):
+    # Check if the message was sent to the "test" channel (either by name or ID)
+    if message.channel.name != "bandrom-booking":
+        return  # Do nothing if the message is not in the "test" channel
+    # Check if the message has attachments and avoid responding to the bot itself
+    if message.attachments and not message.author.bot:
+        for attachment in message.attachments:
+            # Get the URL of the attachment
+            image_url = attachment.url
+
+            # Download the image using requests
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                # Save the image temporarily to process it
+                image_path = 'temp_image.jpg'
+                with open(image_path, 'wb') as f:
+                    f.write(response.content)
+                
+                # Pass the image to your function to generate the event URL
+                try:
+                    event_url = create_event_url(image_path)
+                except Exception as e:
+                    await message.channel.send(f"IKKE BRA NOK SKJERMBILDE")
+                    os.remove(image_path)
+                    return
+                
+                # Send the event URL as a response directly to the person who sent the image
+                await message.channel.send(f"{message.author.mention} Her er event-url'en din: {event_url}")
+                
+                # Delete the temporary image file after processing
+                os.remove(image_path)
 
 @client.event
 async def on_thread_create(thread):
