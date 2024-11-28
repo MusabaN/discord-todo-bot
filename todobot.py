@@ -32,7 +32,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # Check if the message was sent to the "test" channel (either by name or ID)
-    if message.channel.name != "bandrom-booking":
+    if message.channel.name != "øvelse":
         return  # Do nothing if the message is not in the "test" channel
     # Check if the message has attachments and avoid responding to the bot itself
     if message.attachments and not message.author.bot:
