@@ -3,6 +3,7 @@ from PIL import Image
 import urllib.parse
 from datetime import datetime
 from llama_cpp import Llama
+import os
 
 def image_to_text(image_path):
     """Extract text from an image using pytesseract."""
@@ -69,13 +70,19 @@ def generate_google_cal_url_extension(event_details):
 
     return urllib.parse.urlencode(query_params)
 
+def get_participants():
+    """Create a string of participants for the Google Calendar URL."""
+    participants = os.getenv('PARTICIPANTS', None)
+    return f"&add={participants}" if participants != None else ''
+
 def create_event_url(image):
     """Extract text from an image, parse event details, and generate a Google Calendar URL."""
     text = image_to_text(image)
     event_details = eval(extract_event_details(text))
     event_url_extension = generate_google_cal_url_extension(event_details)
     base_url = "https://calendar.google.com/calendar/render?"
-    return base_url + event_url_extension
+    participants = get_participants()
+    return base_url + event_url_extension + participants
 
 def main():
     image_path = '/Users/olejorgen/Downloads/skjermbilde3.jpg'
