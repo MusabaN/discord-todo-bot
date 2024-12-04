@@ -57,7 +57,7 @@ async def on_message(message):
                     return
                 
                 # Send the event URL as a response directly to the person who sent the image
-                await message.channel.send(f"{message.author.mention} Her er event-url'en din: {event_url}")
+                await message.channel.send(f"[google-calendar-link]({event_url})")
                 
                 # Delete the temporary image file after processing
                 os.remove(image_path)
