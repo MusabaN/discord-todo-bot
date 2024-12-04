@@ -25,10 +25,12 @@ def extract_event_details(prompt_text):
         "{'date': 'YYYY-MM-DD', 'start_time': 'HH:MM', 'end_time': 'HH:MM'}\n"
         "The 'date' must follow the ISO 8601 format (e.g., 'YYYY-MM-DD'). "
         "The 'start_time' and 'end_time' must use 24-hour notation (e.g., 'HH:MM'). "
+        "The date in the text is formatted as 'DD.MM.YYYY and the times are formatted as 'HH.MM'."
         "Be sure the start_time and end_time use : to seperate hours and minutes.\n"
         "Do not include seconds or any additional information.\n"
         "Your response should consist solely of the JSON object, with no extra text or explanations."
         "An example of a valid response is {'date': '2022-12-31', 'start_time': '14:00', 'end_time': '16:00'}"
+        "DO NOT convert the hours and minutes to any other timezone."
     )
 
     response = llm.create_chat_completion(
@@ -40,6 +42,10 @@ def extract_event_details(prompt_text):
         ],
         response_format={"type": "json_object"},
     )
+
+    print("-------------RESPONSE-------------------")
+    print(response)
+    print("----------------------------------------")
 
 
     return response['choices'][0]['message']['content']
@@ -78,7 +84,12 @@ def get_participants():
 def create_event_url(image):
     """Extract text from an image, parse event details, and generate a Google Calendar URL."""
     text = image_to_text(image)
+    print("---------- TEXT FROM IMAGE ------------")
+    print(text)
+    print("---------------------------------------\n\n")
+
     event_details = eval(extract_event_details(text))
+    print(event_details)
     event_url_extension = generate_google_cal_url_extension(event_details)
     base_url = "https://calendar.google.com/calendar/render?"
     participants = get_participants()
