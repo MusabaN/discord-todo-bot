@@ -1,3 +1,5 @@
+import re
+import glob
 import pytesseract
 from PIL import Image
 import urllib.parse
@@ -59,10 +61,13 @@ def generate_google_cal_url_extension(event_details):
     start_time = event_details['start_time'].strip().replace('.', ':')
     end_time = event_details['end_time'].strip().replace('.', ':')
 
-    # Parse date and times into datetime objects
-    start_dt = datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M")
-    end_dt = datetime.strptime(f"{date} {end_time}", "%Y-%m-%d %H:%M")
+    # Convert date from DD.MM.YYYY to YYYY-MM-DD
+    date_parts = date.split('.')
+    iso_date = f"{date_parts[2]}-{date_parts[1]}-{date_parts[0]}"
 
+    # Parse date and times into datetime objects
+    start_dt = datetime.strptime(f"{iso_date} {start_time}", "%Y-%m-%d %H:%M")
+    end_dt = datetime.strptime(f"{iso_date} {end_time}", "%Y-%m-%d %H:%M")
 
     # Format for Google Calendar
     start_str = start_dt.strftime("%Y%m%dT%H%M%S")
@@ -84,30 +89,62 @@ def get_participants():
 def create_event_url(image):
     """Extract text from an image, parse event details, and generate a Google Calendar URL."""
     text = image_to_text(image)
-    print("---------- TEXT FROM IMAGE ------------")
-    print(text)
-    print("---------------------------------------\n\n")
-
-    event_details = eval(extract_event_details(text))
-    print(event_details)
+    event_details = regex_event_to_dictionary(text)
     event_url_extension = generate_google_cal_url_extension(event_details)
     base_url = "https://calendar.google.com/calendar/render?"
     participants = get_participants()
     return base_url + event_url_extension + participants
 
+
+def regex_event_to_dictionary(text):
+    """Extract event details from text using regex."""
+    date = regex_date(text)
+    times = regex_time(text).split('-')
+    return {'date': date, 'start_time': times[0], 'end_time': times[1]}
+
+def regex_date(text):
+    """Extract date from text using regex."""
+    date = re.search(r'\d{2}\.\d{2}\.\d{4}', text)
+    return date.group() if date else None
+
+def regex_time(text):
+    """Extract time range from text using regex."""
+    match = re.search(r'\b(\d{2}\.\d{2})\s*-\s*(\d{2}\.\d{2})\b', text)
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
+    return None
+
 def main():
-    image_path = '/Users/olejorgen/Downloads/skjermbilde3.jpg'
+    # for digit in range(8):
+    #     image_path = glob.glob(f'./test/ovelse/skjermbilde{digit}.*')
+    #     if image_path:
+    #         text = image_to_text(image_path[0])
+    #         print(f'\n\n---------- TEXT FROM IMAGE {digit} ------------')
+    #         date = regex_date(text)
+    #         time = regex_time(text)
+    #         # print(text)
+    #         print("---------- DATE ------------")
+    #         print(date)
+    #         print("---------- TIME ------------")
+    #         print(time)
+    #     else:
+    #         print(f'No image found for digit {digit}')
+
+    image_path = glob.glob(f'./test/ovelse/skjermbilde0.*')[0]
     text = image_to_text(image_path)
 
     # Extract event details from text
-    event_details = eval(extract_event_details(text))
+    event_details = regex_event_to_dictionary(text)
+
+    print(event_details)
     
     # Generate the URL extension
     event_url_extension = generate_google_cal_url_extension(event_details)
 
     # Construct the full Google Calendar URL
     base_url = "https://calendar.google.com/calendar/render?"
-    calendar_link = base_url + event_url_extension
+    participants = get_participants()
+    calendar_link = base_url + event_url_extension + participants
 
     print(calendar_link)
 
